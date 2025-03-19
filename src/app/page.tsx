@@ -1,5 +1,4 @@
 "use client";
-
 import { useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import { Countdown } from "@/ui/components/Countdown";
@@ -10,7 +9,19 @@ import { SubjectSelect } from "@/ui/components/SubjectSelect";
 export default function Home() {
   const [displayView, setDisplayView] = useState("intro");
   const [selectedSubject, setSelectedSubject] = useState("");
+  const [selectedTopic, setSelectedTopic] = useState("");
+  const [selectedChapter, setSelectedChapter] = useState("");
   const [selectedLevel, setSelectedLevel] = useState("");
+  const [activeTestCode, setActiveTestCode] = useState("");
+
+  const handleTestCodeApplied = (subject: string, topic: string, chapter: string, code: string) => {
+    setSelectedSubject(subject);
+    setSelectedTopic(topic);
+    setSelectedChapter(chapter);
+    setActiveTestCode(code);
+    // Skip the subject selection screen and go directly to countdown
+    setDisplayView("countdown");
+  };
 
   return (
     <main className="h-viewport flex flex-col w-full overflow-hidden">
@@ -22,17 +33,30 @@ export default function Home() {
                 onGetStartedClick={() => {
                   setDisplayView("subject-select");
                 }}
+                onTestCodeApplied={handleTestCodeApplied}
               />
             ),
             "subject-select": (
               <SubjectSelect
                 selectedSubject={selectedSubject}
+                selectedTopic={selectedTopic}
+                selectedChapter={selectedChapter}
                 selectedLevel={selectedLevel}
-                onSubjectChange={setSelectedSubject}
+                onSubjectChange={(subject) => {
+                  setSelectedSubject(subject);
+                  setSelectedTopic(""); // Reset topic when subject changes
+                  setSelectedChapter(""); // Reset chapter when subject changes
+                }}
+                onTopicChange={(topic) => {
+                  setSelectedTopic(topic);
+                  setSelectedChapter(""); // Reset chapter when topic changes
+                }}
+                onChapterChange={setSelectedChapter}
                 onLevelChange={setSelectedLevel}
                 onContinue={() => {
                   setDisplayView("countdown");
                 }}
+                activeTestCode={activeTestCode}
               />
             ),
             countdown: (
@@ -42,7 +66,15 @@ export default function Home() {
                 }}
               />
             ),
-            quiz: <Quiz subject={selectedSubject} level={selectedLevel} />,
+            quiz: (
+              <Quiz
+                subject={selectedSubject}
+                topic={selectedTopic}
+                chapter={selectedChapter}
+                level={selectedLevel}
+                testCode={activeTestCode}
+              />
+            ),
           }[displayView]
         }
       </AnimatePresence>
